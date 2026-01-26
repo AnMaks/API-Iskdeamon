@@ -23,6 +23,7 @@ Thumbs.db
 # --- Uploads (если хранишь локально) ---
 /public/uploads/
 /uploads/
+/iskdaemon_data/upload
 
 # --- Test / build artifacts ---
 /coverage/
