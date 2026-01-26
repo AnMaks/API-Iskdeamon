@@ -1,0 +1,33 @@
+# --- Composer ---
+/vendor/
+composer.lock
+
+# --- Environment / secrets ---
+.env
+.env.*
+config.local.php
+
+# --- IDE / OS ---
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# --- Logs / cache / temp ---
+*.log
+/cache/
+/tmp/
+/storage/
+/runtime/
+
+# --- Uploads (если хранишь локально) ---
+/public/uploads/
+/uploads/
+
+# --- Test / build artifacts ---
+/coverage/
+.phpunit.result.cache
+
+# --- Node (если вдруг появится фронт) ---
+node_modules/
+dist/
