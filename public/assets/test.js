@@ -29,7 +29,7 @@ async function health() {
     const r = await doFetch(url);
     print({ http: r.http, ...r.body });
 
-    setStatus("Health (HTTP " + r.http + ")", r.http < 400);
+    setStatus("Проверка API (HTTP " + r.http + ")", r.http < 400);
 }
 
 async function addToIndex() {
@@ -44,7 +44,7 @@ async function addToIndex() {
     const r = await doFetch(url, { method: "POST", body: fd });
     print({ http: r.http, ...r.body });
 
-    setStatus("Add (HTTP " + r.http + ")", r.http < 400);
+    setStatus("Get (HTTP " + r.http + ")", r.http < 400);
 }
 
 async function searchUpload() {
@@ -61,7 +61,7 @@ async function searchUpload() {
     const r = await doFetch(url, { method: "POST", body: fd });
     print({ http: r.http, ...r.body });
 
-    setStatus("Search upload (HTTP " + r.http + ")", r.http < 400);
+    setStatus("Поиск завершен (HTTP " + r.http + ")", r.http < 400);
 }
 
 async function searchById() {
@@ -75,7 +75,7 @@ async function searchById() {
     const r = await doFetch(url);
     print({ http: r.http, ...r.body });
 
-    setStatus("Search by ID (HTTP " + r.http + ")", r.http < 400);
+    setStatus("Поиск по id завершен (HTTP " + r.http + ")", r.http < 400);
 }
 
 async function deleteById() {
@@ -88,7 +88,7 @@ async function deleteById() {
     const r = await doFetch(url, { method: "DELETE" });
     print({ http: r.http, ...r.body });
 
-    setStatus("Delete (HTTP " + r.http + ")", r.http < 400);
+    setStatus("Удаление (HTTP " + r.http + ")", r.http < 400);
 }
 
 function clearOut() {
@@ -96,7 +96,7 @@ function clearOut() {
     setStatus("Очищено");
 }
 
-// bind buttons
+// кнопки
 document.getElementById("btnHealth").addEventListener("click", health);
 document.getElementById("btnAdd").addEventListener("click", addToIndex);
 document.getElementById("btnSearch").addEventListener("click", searchUpload);
