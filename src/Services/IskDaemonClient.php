@@ -1,4 +1,11 @@
 <?php
+// Этот класс нужен для связи с isk-daemon по XML-RPC.
+// Тут мы создаём/сбрасываем базу, добавляем картинки и ищем похожие.
+// Все запросы идут через curl и возвращают данные в формате XML-RPC.
+
+namespace App\Services;
+use Exception;
+use Throwable;
 
 class IskDaemonClient
 {
@@ -11,17 +18,17 @@ class IskDaemonClient
         $this->url = "http://" . ISK_HOST . ":" . ISK_PORT . ISK_RPC_PATH;
     }
 
-    // ✅ XML-RPC introspection
+    // XML-RPC
     public function listMethods(): array
     {
         $res = $this->call('system.listMethods', []);
         return is_array($res) ? $res : [];
     }
 
-    // ✅ create db (fallback: createdb / createDb)
+    // Созданеи бд
     public function createdb(): bool
     {
-        // некоторые сборки называют метод по-разному
+
         $tryNames = ['createdb', 'createDb'];
 
         foreach ($tryNames as $name) {
@@ -33,12 +40,12 @@ class IskDaemonClient
                 if (strpos($e->getMessage(), 'procedure') !== false && strpos($e->getMessage(), 'not found') !== false) {
                     continue;
                 }
-                // другая ошибка - пробрасываем
+
                 throw $e;
             }
         }
 
-        throw new Exception("Не найден метод создания базы (createdb/createDb) в daemon");
+        throw new Exception("Не найден метод создания базы (createdb/createDb) в приложений");
     }
 
     public function ensureDbReady(): void
@@ -73,13 +80,13 @@ class IskDaemonClient
 
     public function resetdb(): bool
     {
-        // в логах у тебя точно есть resetdb()
+
         $res = $this->call('resetdb', [$this->dbId]);
         return (bool)$res;
     }
 
 
-    // ✅ УНИКАЛЬНЫЙ id БЕЗ isImgOnDb (чтобы не падать на unknown db)
+    // УНИКАЛЬНЫЙ id
     public function generateUniqueId(): int
     {
         // безопасный int32
@@ -101,7 +108,6 @@ class IskDaemonClient
 
     public function saveAllDbs(): bool
     {
-        // у тебя в контейнере лог: savealldbs()
         $tryNames = ['saveAllDbs', 'savealldbs'];
 
         foreach ($tryNames as $name) {
@@ -141,7 +147,7 @@ class IskDaemonClient
         return $out;
     }
 
-    // ========= XML-RPC core =========
+    // ========= XML-RPC core ========= Самое тяжелое :)
 
     private function call(string $methodName, array $params)
     {

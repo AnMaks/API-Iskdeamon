@@ -1,5 +1,9 @@
 <?php
+// Этот класс нужен, чтобы сохранять загруженные картинки на сервер.
+// Мы берём файл из $_FILES, проверяем что это JPG и кладём его в папку upload.
+// Потом возвращаем пути к файлу.
 
+namespace App\Services;
 class UploadStorage
 {
     public static function saveUploadedImage(string $fieldName = 'image'): array
@@ -17,7 +21,7 @@ class UploadStorage
         $ext = pathinfo($f['name'], PATHINFO_EXTENSION);
         $ext = $ext ? strtolower($ext) : '';
 
-        // ✅ только JPG/JPEG
+        //Только JPG/JPEG
         if (!in_array($ext, ['jpg', 'jpeg'], true)) {
             throw new Exception("Загрузи только JPG/JPEG. Сейчас: .$ext");
         }
@@ -30,7 +34,6 @@ class UploadStorage
             }
         }
 
-        // ✅ имя как в оригинальном проекте: *_full.jpg
         $base = 'img_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4));
         $filename = $base . '_full.jpg';
 
