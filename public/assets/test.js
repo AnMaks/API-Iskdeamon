@@ -69,7 +69,8 @@ async function searchById() {
     if (!id) return setStatus("Неверный ID", false);
 
     const count = Number(document.getElementById("countId").value || 10);
-    const url = '/api/images/${id}/matches?count=' + encodeURIComponent(count);
+    const url = `/api/images/${id}/matches?count=${encodeURIComponent(count)}`;
+
 
     setStatus("GET " + url);
     const r = await doFetch(url);
@@ -82,7 +83,7 @@ async function deleteById() {
     const id = Number(document.getElementById("deleteId").value || 0);
     if (!id) return setStatus("Неверный ID", false);
 
-    const url = '/api/images/${id}';
+    const url = `/api/images/${id}`;
 
     setStatus("DELETE " + url);
     const r = await doFetch(url, { method: "DELETE" });
