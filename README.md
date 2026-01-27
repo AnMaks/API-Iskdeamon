@@ -64,7 +64,7 @@ docker logs -f iskdaemon
 
 ## 5) Создание базы и таблиц
 
-Открой HeidiSQL/phpMyAdmin или MySQL консоль и выполни:
+Открыть HeidiSQL/phpMyAdmin или MySQL консоль и выполнить:
 
 ```sql
 CREATE DATABASE IF NOT EXISTS isk_api
