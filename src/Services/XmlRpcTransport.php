@@ -1,6 +1,8 @@
 <?php
-declare(strict_types=1);
-
+/**
+ * Низкоуровневый клиент isk-daemon.
+ * Тут логика: запросов к приложению.
+ */
 namespace App\Services;
 
 use Exception;
@@ -17,11 +19,7 @@ final class XmlRpcTransport
     public function __construct(string $host, int $port, string $path, int $timeoutSec = 20)
     {
         $this->client = new Client($path, $host, $port);
-
-        // В этой версии таймаут задаётся через свойство
         $this->client->timeout = $timeoutSec;
-
-        // Encoder умеет правильно декодировать Value -> PHP types
         $this->encoder = new Encoder();
     }
 
@@ -40,7 +38,6 @@ final class XmlRpcTransport
             throw new Exception("XML-RPC fault: " . $resp->faultCode() . " | " . $resp->faultString());
         }
 
-        // ✅ вместо ручного arrayMem/structMem — декодируем энкодером
         return $this->encoder->decode($resp->value());
     }
 
@@ -56,16 +53,12 @@ final class XmlRpcTransport
 
             if ($isAssoc) {
                 $struct = [];
-                foreach ($v as $k => $val) {
-                    $struct[(string)$k] = $this->toValue($val);
-                }
+                foreach ($v as $k => $val) $struct[(string)$k] = $this->toValue($val);
                 return new Value($struct, 'struct');
             }
 
             $arr = [];
-            foreach ($v as $val) {
-                $arr[] = $this->toValue($val);
-            }
+            foreach ($v as $val) $arr[] = $this->toValue($val);
             return new Value($arr, 'array');
         }
 

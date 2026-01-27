@@ -1,5 +1,5 @@
 <?php
-declare(strict_types=1);
+// Открытие тестовой страницы
 
 namespace App\Controllers;
 
@@ -18,11 +18,5 @@ final class WebController
         header('Content-Type: text/html; charset=utf-8');
         readfile($file);
         exit;
-    }
-
-    // если хочешь, чтобы / открывал тестовую страницу
-    public function home(): void
-    {
-        $this->test();
     }
 }
