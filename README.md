@@ -1,7 +1,7 @@
 # API-Iskdeamon
 # isk-daemon REST API (PHP) + MySQL (метаданные) + Docker (isk-daemon)
 
-> Важно: в твоей сборке `isk-daemon` корректно обрабатывает пути из папки `upload/`.
+> Важно: сборке `isk-daemon` корректно обрабатывает пути из папки `upload/`.
 > Поэтому для индексации мы кладём изображения в `\iskdaemon_data\upload\...`
 > и передаём в daemon путь `upload/filename.jpg` или абсолютный путь внутри контейнера.
 
