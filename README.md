@@ -102,7 +102,7 @@ ALTER TABLE images AUTO_INCREMENT = 200;
 composer install
 ```
 
-Если нужно поставить XML-RPC библиотеку (если её ещё нет):
+Поставить XML-RPC библиотеку:
 
 ```terminal
 composer require gggeek/phpxmlrpc
