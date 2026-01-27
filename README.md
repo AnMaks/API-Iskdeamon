@@ -33,8 +33,6 @@
 
 ## 3) Запуск isk-daemon в Docker (PowerShell)
 
-⚠️ В PowerShell перенос строки делается через **`** (backtick), а не через `^`.
-
 Запуск контейнера:
 
 ```powershell
