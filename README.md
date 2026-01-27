@@ -196,5 +196,5 @@ php -S 127.0.0.1:8080 -t public
 5) `composer install`
 6) `php -S 127.0.0.1:8080 -t public`
 7) Открой `/api/health`
-8) Добавь JPG через `/api/images`
+8) Добавь картинку через `/api/images`
 9) Поиск через `/api/search` или `/api/images/{id}/matches`  
