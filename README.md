@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS images (
   INDEX (created_at)
 ) ENGINE=InnoDB;
 
--- чтобы id шли как в тестах (200+)
+--  id как в тестах (200+)
 ALTER TABLE images AUTO_INCREMENT = 200;
 ```
 
