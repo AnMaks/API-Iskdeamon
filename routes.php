@@ -1,5 +1,5 @@
 <?php
-use App\Kernal\Router\Route;
+use App\Kernel\Router\Route;
 use App\Controllers\ApiController;
 use App\Controllers\WebController;
 

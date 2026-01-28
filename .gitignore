@@ -1,6 +1,6 @@
 # --- Composer ---
-/vendor/
-composer.lock
+local/vendor/
+local/composer.lock
 
 # --- Environment / secrets ---
 .env
@@ -20,7 +20,7 @@ Thumbs.db
 /storage/
 /runtime/
 
-# --- Uploads (если хранишь локально) ---
+# --- Uploads (если  локально) ---
 /public/uploads/
 /uploads/
 /iskdaemon_data/upload

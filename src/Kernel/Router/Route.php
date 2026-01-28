@@ -3,7 +3,7 @@
 // Route хранит метод (GET/POST/DELETE), путь (/api/health) и контроллер с методом.
 // Потом Router использует эти Route, чтобы понять куда направить запрос.
 
-namespace App\Kernal\Router;
+namespace App\Kernel\Router;
 
 final class Route
 {

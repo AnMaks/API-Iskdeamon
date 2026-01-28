@@ -1,24 +1,9 @@
 <?php
 
 require_once __DIR__ . '/../config.php';
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../local/vendor/autoload.php';
 
-require_once __DIR__ . '/../src/Support/Response.php';
-require_once __DIR__ . '/../src/Support/Db.php';
-
-require_once __DIR__ . '/../src/Kernel/Router/Route.php';
-require_once __DIR__ . '/../src/Kernel/Router/Router.php';
-
-require_once __DIR__ . '/../src/Repositories/ImageRepository.php';
-
-require_once __DIR__ . '/../src/Services/XmlRpcTransport.php';
-require_once __DIR__ . '/../src/Services/IskDaemonClient.php';
-require_once __DIR__ . '/../src/Services/UploadStorage.php';
-
-require_once __DIR__ . '/../src/Controllers/WebController.php';
-require_once __DIR__ . '/../src/Controllers/ApiController.php';
-
-use App\Kernal\Router\Router;
+use App\Kernel\Router\Router;
 use App\Services\IskDaemonClient;
 use App\Support\Response;
 

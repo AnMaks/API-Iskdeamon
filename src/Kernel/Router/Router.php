@@ -3,7 +3,7 @@
 // Если маршрут найден — вызывает нужный метод контроллера.
 // Также умеет доставать параметры из URL.
 
-namespace App\Kernal\Router;
+namespace App\Kernel\Router;
 
 use App\Support\Response;
 

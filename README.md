@@ -1,7 +1,7 @@
 # API-Iskdeamon
 # isk-daemon REST API (PHP) + MySQL (метаданные) + Docker (isk-daemon)
 
-> Важно: сборке `isk-daemon` корректно обрабатывает пути из папки `upload/`.
+> Важно: в твоей сборке `isk-daemon` корректно обрабатывает пути из папки `upload/`.
 > Поэтому для индексации мы кладём изображения в `\iskdaemon_data\upload\...`
 > и передаём в daemon путь `upload/filename.jpg` или абсолютный путь внутри контейнера.
 
@@ -32,6 +32,8 @@
 ---
 
 ## 3) Запуск isk-daemon в Docker (PowerShell)
+
+⚠️ В PowerShell перенос строки делается через **`** (backtick), а не через `^`.
 
 Запуск контейнера:
 
@@ -64,7 +66,7 @@ docker logs -f iskdaemon
 
 ## 5) Создание базы и таблиц
 
-Открыть HeidiSQL/phpMyAdmin или MySQL консоль и выполнить:
+Открой HeidiSQL/phpMyAdmin или MySQL консоль и выполни:
 
 ```sql
 CREATE DATABASE IF NOT EXISTS isk_api
@@ -88,7 +90,7 @@ CREATE TABLE IF NOT EXISTS images (
   INDEX (created_at)
 ) ENGINE=InnoDB;
 
---  id как в тестах (200+)
+-- чтобы id шли как в тестах (200+)
 ALTER TABLE images AUTO_INCREMENT = 200;
 ```
 
@@ -102,7 +104,7 @@ ALTER TABLE images AUTO_INCREMENT = 200;
 composer install
 ```
 
-Поставить XML-RPC библиотеку:
+Если нужно поставить XML-RPC библиотеку (если её ещё нет):
 
 ```terminal
 composer require gggeek/phpxmlrpc
@@ -116,12 +118,6 @@ composer require gggeek/phpxmlrpc
 
 Добавить информацию о настройках MySQL
 
-```powershell
-define('DB_DSN',  'mysql:host=127.0.0.1;port=3306;dbname=isk_api;charset=utf8mb4');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-```
-
 ---
 
 ## 8) Запуск API
@@ -129,11 +125,11 @@ define('DB_PASS', '');
 В корне проекта:
 
 ```powershell
-cd "Корень проекта"
+cd Корень проекта
 php -S 127.0.0.1:8080 -t public
 ```
 
-Открыть:
+Открой:
 - `http://127.0.0.1:8080/api/health`
 - тестовая страница: `http://127.0.0.1:8080/`
 
@@ -196,5 +192,5 @@ php -S 127.0.0.1:8080 -t public
 5) `composer install`
 6) `php -S 127.0.0.1:8080 -t public`
 7) Открой `/api/health`
-8) Добавь картинку через `/api/images`
+8) Добавь JPG через `/api/images`
 9) Поиск через `/api/search` или `/api/images/{id}/matches`  
