@@ -52,14 +52,14 @@ final class ApiController
         global $client;
         $client->ensureDbReady();
 
-        // сохраняем файл в thumbs (это и есть "миниатюра" для индексации)
+        // сохраняем файл в thumbs
         $saved = UploadStorage::saveUploadedImage('image', UPLOAD_SUBDIR);
 
-        // пишем метаданные в MySQL и получаем id (именно он идёт в daemon)
+        // пишем метаданные в MySQL и получаем id 
         $repo = new ImageRepository();
         $id = $repo->insert($saved);
 
-        // index
+
         $okAdd = false;
         $usedPath = null;
 
@@ -91,7 +91,7 @@ final class ApiController
         ], 201);
     }
 
-    // random images (step 7-10 из архитектуры)
+
     public function random(array $params = []): void
     {
         $limit = isset($_GET['count']) ? (int)$_GET['count'] : 1;
@@ -107,7 +107,7 @@ final class ApiController
         Response::ok(['count' => count($out), 'items' => $out]);
     }
 
-    // search by upload (temp)
+
     public function searchUpload(array $params = []): void
     {
         global $client;
@@ -118,7 +118,7 @@ final class ApiController
         $count = isset($_GET['count']) ? (int)$_GET['count'] : 10;
         if ($count <= 0) $count = 10;
 
-        // tempId должен быть int32 (иначе будет "long int exceeds XML-RPC limits")
+
         $tempId = 1500000000 + random_int(0, 1000000);
 
         $okAdd = false;
@@ -158,7 +158,6 @@ final class ApiController
         Response::ok(['tempId' => $tempId, 'count' => count($matches), 'matches' => $matches]);
     }
 
-    // search similar by ID (step 11-16)
     public function matchesById(array $params): void
     {
         global $client;
@@ -219,7 +218,7 @@ final class ApiController
 
         $client->saveAllDbs();
 
-        // удаляем из MySQL (и можно удалить файл)
+        // удаляем из MySQL 
         $repo = new ImageRepository();
         $row = $repo->find($id);
         if ($row && is_file($row['host_path'])) @unlink($row['host_path']);
