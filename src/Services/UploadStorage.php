@@ -25,9 +25,9 @@ final class UploadStorage
         $ext = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION) ?: '');
 
         // 2) разрешённые форматы
-        $allowedExt = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'tif', 'tiff'];
+        $allowedExt = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
         if (!in_array($ext, $allowedExt, true)) {
-            throw new Exception("Разрешены: " . implode(', ', $allowedExt) . ". Сейчас: .$ext");
+            throw new Exception("Картинки: " . implode(', ', $allowedExt) . ". Сейчас: .$ext");
         }
 
         // 3) папка на хосте
