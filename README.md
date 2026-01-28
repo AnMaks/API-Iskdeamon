@@ -104,10 +104,11 @@ ALTER TABLE images AUTO_INCREMENT = 200;
 composer install
 ```
 
-Если нужно поставить XML-RPC библиотеку (если её ещё нет):
+Поставить все нужные зависимости
 
 ```terminal
-composer require gggeek/phpxmlrpc
+composer --working-dir=local install
+composer --working-dir=local dump-autoload
 ```
 
 > Если `composer` не распознаётся — Composer не установлен или не добавлен в PATH.
