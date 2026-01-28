@@ -22,7 +22,18 @@ final class ImageRepository
         $st = $this->db->prepare($sql);
         $st->execute([
             ':filename' => $row['filename'],
-            ':mime' => $row['mime'] ?? 'image/jpeg',
+            ':mime' => $row['mime']
+    ?? (function () use ($row) {
+        $name = (string)($row['filename'] ?? '');
+        $ext  = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+        return match ($ext) {
+            'jpg', 'jpeg' => 'image/jpeg',
+            'png'         => 'image/png',
+            'webp'        => 'image/webp',
+            'gif'         => 'image/gif',
+            default       => 'application/octet-stream',
+        };
+    })(),
             ':width' => $row['width'] ?? null,
             ':height' => $row['height'] ?? null,
             ':host_path' => $row['hostPath'],
