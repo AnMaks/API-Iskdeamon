@@ -48,7 +48,7 @@ final class Container
         }
 
         $obj = $this->make($id);
-        $this->instances[$id] = $obj; // по умолчанию кешируем
+        $this->instances[$id] = $obj; 
         return $obj;
     }
 
