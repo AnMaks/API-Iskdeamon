@@ -1,26 +1,29 @@
 <?php
-// Он принимает список маршрутов (GET/POST/DELETE) и ищет нужный по URL.
-// Если маршрут найден — вызывает нужный метод контроллера.
-// Также умеет доставать параметры из URL.
+
+// Router: ищет маршрут по (method + path) и вызывает action контроллера.
 
 namespace App\Kernel\Router;
 
+use App\Kernel\Container\Container;
+use App\Kernel\Http\Request;
 use App\Support\Response;
 
 final class Router
 {
     /** @var Route[] */
     private array $routes = [];
+    private Container $container;
 
-    public function __construct(array $routes)
+    public function __construct(array $routes, Container $container)
     {
         $this->routes = $routes;
+        $this->container = $container;
     }
 
-    public function dispatch(string $method, string $uriPath): void
+    public function dispatch(Request $request): void
     {
-        $method = strtoupper($method);
-        $uriPath = rtrim($uriPath, '/') ?: '/';
+        $method = strtoupper($request->method);
+        $uriPath = rtrim($request->path, '/') ?: '/';
 
         foreach ($this->routes as $route) {
             if ($route->method !== $method) continue;
@@ -34,14 +37,14 @@ final class Router
                 Response::fail("Контроллер не найден: $class", 500);
             }
 
-            $controller = new $class();
+            $controller = $this->container->get($class);
 
             if (!method_exists($controller, $action)) {
                 Response::fail("Метод не найден: $class::$action()", 500);
             }
 
-            // передаем params (например id)
-            $controller->$action($match);
+            // action(Request $request, array $params)
+            $controller->$action($request, $match);
             return;
         }
 
@@ -57,7 +60,7 @@ final class Router
             return $routePath === $uriPath ? [] : null;
         }
 
-        // превращаем /x/{id}/y -> regex
+        // /x/{id}/y -> regex
         $regex = preg_replace('#\{(\w+)\}#', '(?P<$1>[^/]+)', $routePath);
         $regex = '#^' . $regex . '$#';
 
