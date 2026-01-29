@@ -3,22 +3,16 @@
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../local/vendor/autoload.php';
 
-use App\Kernel\Router\Router;
-use App\Services\IskDaemonClient;
+use App\Kernel\Container\Container;
 use App\Support\Response;
 
 try {
-    $client = new IskDaemonClient(ISK_DB_ID);
-
     $routes = require __DIR__ . '/../routes.php';
-    $router = new Router($routes);
 
-    $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-    $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-    $path = rtrim($path, '/') ?: '/';
-
-    $router->dispatch($method, $path);
+    $container = new Container($routes);
+    $container->router->dispatch($container->request);
 
 } catch (Throwable $e) {
     Response::fail("Ошибка: " . $e->getMessage(), 500);
 }
+

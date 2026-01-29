@@ -1,79 +1,81 @@
 <?php
-// Это контроллер для API.
-// Здесь находятся методы, которые обрабатывают запросы (/api/health, /api/images и т.д.).
-// Каждый метод вызывает нужные функции IskDaemonClient и возвращает JSON ответ через Response.
+declare(strict_types=1);
 
 namespace App\Controllers;
 
-use App\Support\Response;
-use App\Services\UploadStorage;
+use App\Kernel\Http\Request;
 use App\Repositories\ImageRepository;
+use App\Services\IskDaemonClient;
+use App\Services\UploadStorage;
+use App\Support\Response;
+use Random\RandomException;
 
 final class ApiController
 {
-    public function health(array $params = []): void
+    public function __construct(
+        private readonly IskDaemonClient $client,
+        private readonly ImageRepository $repo,
+    ) {}
+
+    public function health(Request $request, array $params = []): void
     {
-        global $client;
-        $client->ensureDbReady();
+        $this->client->ensureDbReady();
 
         Response::ok([
             'daemon' => 'online',
             'dbId' => ISK_DB_ID,
-            'imagesInDaemon' => $client->getDbImgCount(),
+            'imagesInDaemon' => $this->client->getDbImgCount(),
         ]);
     }
 
-    public function init(array $params = []): void
+    public function init(Request $request, array $params = []): void
     {
-        global $client;
-        $created = $client->createdb();
-        $client->saveAllDbs();
+        $created = $this->client->createdb();
+        $this->client->saveAllDbs();
 
         Response::ok(['dbId' => ISK_DB_ID, 'created' => (bool)$created]);
     }
 
-    public function reset(array $params = []): void
+    public function reset(Request $request, array $params = []): void
     {
-        global $client;
-        $repo = new ImageRepository();
-
-        $ok = $client->resetdb();
-        $client->saveAllDbs();
+        $ok = $this->client->resetdb();
+        $this->client->saveAllDbs();
 
         // метаданные тоже очищаем
-        $repo->truncate();
+        $this->repo->truncate();
 
         Response::ok(['dbId' => ISK_DB_ID, 'reset' => (bool)$ok, 'mysqlTruncated' => true]);
     }
 
-    // 1) admin adds image -> save meta -> save thumb -> index in daemon
-    public function addImage(array $params = []): void
+    public function addImage(Request $request, array $params = []): void
     {
-        global $client;
-        $client->ensureDbReady();
+        $this->client->ensureDbReady();
 
-        // сохраняем файл в thumbs
-        $saved = UploadStorage::saveUploadedImage('image', UPLOAD_SUBDIR);
+        $file = $request->file('image');
+        if (!$file) {
+            Response::fail("Нет файла в поле 'image'", 400);
+        }
 
-        // пишем метаданные в MySQL и получаем id 
-        $repo = new ImageRepository();
-        $id = $repo->insert($saved);
+        $saved = UploadStorage::saveUploadedImage($file, UPLOAD_SUBDIR);
 
+        $id = $this->repo->insert($saved);
 
         $okAdd = false;
         $usedPath = null;
 
-        try { $okAdd = $client->addImg($id, $saved['containerPath']); $usedPath = $saved['containerPath']; }
+        try { $okAdd = $this->client->addImg($id, $saved['containerPath']); $usedPath = $saved['containerPath']; }
         catch (\Throwable $e) {}
 
         if (!$okAdd) {
-            try { $okAdd = $client->addImg($id, $saved['relativePath']); $usedPath = $saved['relativePath']; }
+            try { $okAdd = $this->client->addImg($id, $saved['relativePath']); $usedPath = $saved['relativePath']; }
             catch (\Throwable $e) {}
         }
 
         if (!$okAdd) {
-            // откат метаданных
-            $repo->delete($id);
+            // откат метаданных + удаляем файл
+            $this->repo->delete($id);
+            @unlink($saved['hostPath']);
+
             Response::fail("Daemon не смог обработать картинку", 502, [
                 'imageId' => $id,
                 'try1' => $saved['containerPath'],
@@ -81,7 +83,7 @@ final class ApiController
             ]);
         }
 
-        $client->saveAllDbs();
+        $this->client->saveAllDbs();
 
         Response::ok([
             'imageId' => $id,
@@ -91,13 +93,11 @@ final class ApiController
         ], 201);
     }
 
-
-    public function random(array $params = []): void
+    public function random(Request $request, array $params = []): void
     {
-        $limit = isset($_GET['count']) ? (int)$_GET['count'] : 1;
-        $repo = new ImageRepository();
+        $limit = $request->queryInt('count', 1, 1, 50);
 
-        $rows = $repo->random($limit);
+        $rows = $this->repo->random($limit);
         $out = array_map(fn($r) => [
             'id' => (int)$r['id'],
             'fileUrl' => "/api/images/{$r['id']}/file",
@@ -107,24 +107,29 @@ final class ApiController
         Response::ok(['count' => count($out), 'items' => $out]);
     }
 
-
-    public function searchUpload(array $params = []): void
+    /**
+     * @throws \Throwable
+     * @throws RandomException
+     */
+    public function searchUpload(Request $request, array $params = []): void
     {
-        global $client;
-        $client->ensureDbReady();
+        $this->client->ensureDbReady();
 
-        $saved = UploadStorage::saveUploadedImage('image', UPLOAD_SUBDIR);
+        $file = $request->file('image');
+        if (!$file) {
+            Response::fail("Нет файла в поле 'image'", 400);
+        }
 
-        $count = isset($_GET['count']) ? (int)$_GET['count'] : 10;
-        if ($count <= 0) $count = 10;
+        $saved = UploadStorage::saveUploadedImage($file, UPLOAD_SUBDIR);
 
+        $count = $request->queryInt('count', 10, 1, 50);
 
         $tempId = 1500000000 + random_int(0, 1000000);
 
         $okAdd = false;
-        try { $okAdd = $client->addImg($tempId, $saved['containerPath']); } catch (\Throwable $e) {}
+        try { $okAdd = $this->client->addImg($tempId, $saved['containerPath']); } catch (\Throwable $e) {}
         if (!$okAdd) {
-            try { $okAdd = $client->addImg($tempId, $saved['relativePath']); } catch (\Throwable $e) {}
+            try { $okAdd = $this->client->addImg($tempId, $saved['relativePath']); } catch (\Throwable $e) {}
         }
 
         if (!$okAdd) {
@@ -136,17 +141,16 @@ final class ApiController
             ]);
         }
 
-        $matches = $client->queryImgID($tempId, $count);
+        $matches = $this->client->queryImgID($tempId, $count);
 
         // remove temp + clean file
-        try { $client->removeImg($tempId); } catch (\Throwable $e) {}
-        $client->saveAllDbs();
+        try { $this->client->removeImg($tempId); } catch (\Throwable $e) {}
+        $this->client->saveAllDbs();
         @unlink($saved['hostPath']);
 
         // enrich via MySQL
         $ids = array_map(fn($x) => (int)$x['id'], $matches);
-        $repo = new ImageRepository();
-        $meta = $repo->findManyByIds($ids);
+        $meta = $this->repo->findManyByIds($ids);
 
         foreach ($matches as &$m) {
             $id = (int)$m['id'];
@@ -158,23 +162,20 @@ final class ApiController
         Response::ok(['tempId' => $tempId, 'count' => count($matches), 'matches' => $matches]);
     }
 
-    public function matchesById(array $params): void
+    public function matchesById(Request $request, array $params): void
     {
-        global $client;
-        $client->ensureDbReady();
+        $this->client->ensureDbReady();
 
         $imgId = (int)($params['id'] ?? 0);
         if ($imgId <= 0) Response::fail("Неверный id", 400);
 
-        $count = isset($_GET['count']) ? (int)$_GET['count'] : 10;
-        if ($count <= 0) $count = 10;
+        $count = $request->queryInt('count', 10, 1, 50);
 
-        $matches = $client->queryImgID($imgId, $count);
+        $matches = $this->client->queryImgID($imgId, $count);
         $matches = array_values(array_filter($matches, fn($x) => (int)$x['id'] !== $imgId));
 
         $ids = array_map(fn($x) => (int)$x['id'], $matches);
-        $repo = new ImageRepository();
-        $meta = $repo->findManyByIds($ids);
+        $meta = $this->repo->findManyByIds($ids);
 
         foreach ($matches as &$m) {
             $id = (int)$m['id'];
@@ -186,43 +187,41 @@ final class ApiController
         Response::ok(['imageId' => $imgId, 'count' => count($matches), 'matches' => $matches]);
     }
 
-    // отдача миниатюры/файла по id (чтобы показывать результаты)
-    public function fileById(array $params): void
+    // отдаёт сам файл по id
+    public function fileById(Request $request, array $params): void
     {
         $id = (int)($params['id'] ?? 0);
         if ($id <= 0) Response::fail("Неверный id", 400);
 
-        $repo = new ImageRepository();
-        $row = $repo->find($id);
+        $row = $this->repo->find($id);
         if (!$row) Response::fail("Не найдено в MySQL", 404);
 
         $path = $row['host_path'];
         if (!is_file($path)) Response::fail("Файл не найден на диске", 404);
 
-        header('Content-Type: image/jpeg');
+        $mime = $row['mime'] ?: 'application/octet-stream';
+        header('Content-Type: ' . $mime);
         readfile($path);
         exit;
     }
 
-    public function deleteById(array $params): void
+    public function deleteById(Request $request, array $params): void
     {
-        global $client;
-        $client->ensureDbReady();
+        $this->client->ensureDbReady();
 
         $id = (int)($params['id'] ?? 0);
         if ($id <= 0) Response::fail("Неверный id", 400);
 
         // удаляем из daemon
         $deleted = false;
-        try { $deleted = (bool)$client->removeImg($id); } catch (\Throwable $e) {}
+        try { $deleted = (bool)$this->client->removeImg($id); } catch (\Throwable $e) {}
 
-        $client->saveAllDbs();
+        $this->client->saveAllDbs();
 
-        // удаляем из MySQL 
-        $repo = new ImageRepository();
-        $row = $repo->find($id);
+        // удаляем из MySQL + файл
+        $row = $this->repo->find($id);
         if ($row && is_file($row['host_path'])) @unlink($row['host_path']);
-        $repo->delete($id);
+        $this->repo->delete($id);
 
         Response::ok(['imageId' => $id, 'deletedFromDaemon' => $deleted, 'deletedFromMysql' => true]);
     }
